@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta id=freshers http-equiv="refresh" content="45;url=./?timestamp" />
+  <meta id="freshers" http-equiv="refresh" content="45;url=./?timestamp" />
   <title>GitHub Guestbook</title>
-  <link rel=icon href=favicon.png>
+  <link rel="icon" href="favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -75,6 +75,47 @@
     .github-btn:is(:hover, :focus) {
       background-color: #6cc644;
     }
+
+    /* Dialog Style */
+    dialog {
+      background-color: #111;
+      border: none;
+      border-radius: 8px;
+      color: #00ffff;
+      padding: 2rem;
+      width: 80%;
+      max-width: 500px;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+      display: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    dialog[open] {
+      display: block;
+      opacity: 1;
+    }
+
+    /* Button to open dialog */
+    .how-it-works-btn {
+      background-color: #84d;
+      color: #00ffff;
+      padding: 8px 16px;
+      font-size: 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      text-decoration: underline;
+      transition: background-color 0.3s ease;
+    }
+
+    .how-it-works-btn:hover {
+      background-color: #6cc644;
+    }
+
   </style>
 </head>
 <body class="flex flex-col items-center min-h-screen">
@@ -92,16 +133,6 @@
 
     <!-- Form -->
     <form id="guestbook-form" class="space-y-4 mb-8">
-      <!--
-      <div>
-        <input type="text" id="username" placeholder="Username" required
-          class="bg-[#222] text-[#00ffff] p-2 rounded w-full text-sm" aria-label="Username">
-      </div>
-      <div>
-        <input type="password" id="password" placeholder="Password" required
-          class="bg-[#222] text-[#00ffff] p-2 rounded w-full text-sm" aria-label="Password">
-      </div>
-      !-->
       <div>
         <input type="text" id="name" placeholder="Your Name" required
           class="bg-[#222] text-[#00ffff] p-2 rounded w-full text-sm" aria-label="Name">
@@ -122,19 +153,21 @@
       <h2 class="text-lg text-[#00ffff] mb-4">Messages</h2>
       <div id="message-list"></div>
     </section>
+
+    <!-- Button to open the dialog -->
+    <button class="how-it-works-btn" id="how-it-works-btn">How does this work?</button>
   </main>
 
-  <dialog>
+  <!-- Dialog Box -->
+  <dialog id="how-it-works-dialog">
     Fully-hosted on GitHub Pages with SQLite Back-end Updated in the Repo on GitHub Actions
   </dialog>
 
   <!-- Footer -->
   <footer class="w-full py-8 text-center text-sm text-[#00ffff]">
-    <p>Built with love for the indie web. © 2025</p>
-     <!-- GitHub Contribution Button -->
-    <br>
-    <p style=color:#84d;>See something you could improve? <a onclick=github.focus() style="cursor: pointer; text-decoration:underline;">Do it!</a></p>
-    <a id=github href="https://github.com/DO-SAY-GO/fully-hosted" target="_blank" class="github-btn">
+    <p>Built with love for the indie web. ¬© 2025</p>
+    <p style="color:#84d;">See something you could improve? <a onclick="github.focus()" style="cursor: pointer; text-decoration:underline;">Do it!</a></p>
+    <a id="github" href="https://github.com/DO-SAY-GO/fully-hosted" target="_blank" class="github-btn">
       Contribute on GitHub
     </a>
   </footer>
@@ -154,7 +187,7 @@
           return new SQL.Database(new Uint8Array(arrayBuffer))
         } catch (err) {
           console.error('Failed to load database:', err)
-          messageList.innerHTML = `<span style=color:red;>Error fetching messages.</span>`
+          messageList.innerHTML = `<span style="color:red;">Error fetching messages.</span>`
           return null
         }
       }
@@ -189,7 +222,14 @@
       }
     }
 
+    // Function to open the dialog when the button is clicked
+    document.getElementById('how-it-works-btn').addEventListener('click', () => {
+      const dialog = document.getElementById('how-it-works-dialog');
+      dialog.showModal();
+    });
+
     document.addEventListener('DOMContentLoaded', initGuestbook)
   </script>
 </body>
 </html>
+
