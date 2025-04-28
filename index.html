@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta id="freshers" http-equiv="refresh" content="45;url=./?timestamp" />
+  <meta id="freshers" http-equiv="refresh" content="45;url=./?t" />
   <title>GitHub Guestbook</title>
   <link rel="icon" href="favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,7 +12,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.min.js"></script>
   <script>
-    document.querySelector('#freshers').content += `=${Date.now()}`;
+    document.querySelector('#freshers').content += `=${Date.now().toString(36)}`;
   </script>
   <style>
     :root, body {
