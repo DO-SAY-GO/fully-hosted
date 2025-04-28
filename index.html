@@ -226,16 +226,18 @@
           );
 
           console.log('Response status:', response.status);
-          const responseBody = await response.json();
-          console.log('Response body:', responseBody);
+          let responseBody;
+          try { 
+            responseBody = await response.text();
+            console.log('Response body:', responseBody);
+          } catch(e) {
+            console.warn(`Could not get response body`, e);
+          }
 
           if (response.ok) {
             status.textContent = 'Message submitted successfully!';
             form.reset();
-            setTimeout(() => {
-              status.classList.add('hidden');
-              window.location.reload();
-            }, 2000);
+            status.classList.add('hidden');
           } else {
             throw new Error(responseBody.message || `HTTP ${response.status}`);
           }
