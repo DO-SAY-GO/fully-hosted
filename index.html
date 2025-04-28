@@ -3,13 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Guestbook</title>
+  <meta id=freshers http-equiv="refresh" content="45;url=./?timestamp" />
+  <title>GitHub Guestbook</title>
+  <link rel=icon href=favicon.png>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.min.js"></script>
-  <link rel=icon href=favicon.png>
+  <script>
+    document.querySelector('#freshers').content += `=${Date.now()}`;
+  </script>
   <style>
     :root, body {
       margin: 0;
@@ -52,6 +56,25 @@
     input, textarea, button {
       font-family: "Press Start 2P", system-ui;
     }
+
+    /* GitHub Button Style */
+    .github-btn {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background-color: #24292f;
+      color: white;
+      padding: 10px 20px;
+      font-size: 1rem;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      text-decoration: none;
+      transition: background-color 0.3s;
+    }
+
+    .github-btn:is(:hover, :focus) {
+      background-color: #6cc644;
+    }
   </style>
 </head>
 <body class="flex flex-col items-center min-h-screen">
@@ -69,6 +92,7 @@
 
     <!-- Form -->
     <form id="guestbook-form" class="space-y-4 mb-8">
+      <!--
       <div>
         <input type="text" id="username" placeholder="Username" required
           class="bg-[#222] text-[#00ffff] p-2 rounded w-full text-sm" aria-label="Username">
@@ -77,6 +101,7 @@
         <input type="password" id="password" placeholder="Password" required
           class="bg-[#222] text-[#00ffff] p-2 rounded w-full text-sm" aria-label="Password">
       </div>
+      !-->
       <div>
         <input type="text" id="name" placeholder="Your Name" required
           class="bg-[#222] text-[#00ffff] p-2 rounded w-full text-sm" aria-label="Name">
@@ -99,139 +124,72 @@
     </section>
   </main>
 
+  <dialog>
+    Fully-hosted on GitHub Pages with SQLite Back-end Updated in the Repo on GitHub Actions
+  </dialog>
+
   <!-- Footer -->
   <footer class="w-full py-8 text-center text-sm text-[#00ffff]">
     <p>Built with love for the indie web. © 2025</p>
+     <!-- GitHub Contribution Button -->
+    <br>
+    <p style=color:#84d;>See something you could improve? <a onclick=github.focus() style="cursor: pointer; text-decoration:underline;">Do it!</a></p>
+    <a id=github href="https://github.com/DO-SAY-GO/fully-hosted" target="_blank" class="github-btn">
+      Contribute on GitHub
+    </a>
   </footer>
-
-  <!-- Favicon Generation Script -->
-  <script>
-    const downloadable = false;
-    const canvas = document.createElement('canvas');
-    canvas.width = 512;
-    canvas.height = 512;
-    const ctx = canvas.getContext('2d');
-    const cornerRadius = 5;
-    ctx.beginPath();
-    ctx.roundRect(0, 0, 512, 512, cornerRadius);
-    ctx.clip();
-    ctx.fillStyle = '#00ffff';
-    ctx.font = '384px "Press Start 2P"';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('>', 307.2, 272);
-    const dataUrl = canvas.toDataURL('image/png');
-    const link = document.createElement('a');
-    link.href = dataUrl;
-    link.download = 'favicon.png';
-    link.innerText = 'icon.png';
-    if (downloadable) {
-      link.click();
-      document.body.appendChild(link);
-    }
-  </script>
 
   <!-- Guestbook Logic -->
   <script>
-    // GitHub configuration (replace with your details)
-    const GITHUB_OWNER = 'YOUR_USERNAME';
-    const GITHUB_REPO = 'YOUR_REPO';
-    const WORKFLOW_ID = 'backend.yml';
-    const GITHUB_TOKEN = 'YOUR_PERSONAL_ACCESS_TOKEN'; // Secure in production
+    async function initGuestbook() {
+      const messageList = document.getElementById('message-list')
+      const SQL = await initSqlJs({
+        locateFile: filename => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/${filename}`
+      })
 
-    // Initialize SQLite
-    async function initDB() {
-      try {
-        const response = await fetch('/data.db');
-        if (!response.ok) throw new Error('Failed to fetch data.db');
-        const buffer = await response.arrayBuffer();
-        const SQL = await initSqlJs({ locateFile: () => 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.wasm' });
-        return new SQL.Database(new Uint8Array(buffer));
-      } catch (error) {
-        console.error('Error initializing DB:', error);
-        throw error;
-      }
-    }
-
-    // Load and display messages
-    async function loadMessages() {
-      const messageList = document.getElementById('message-list');
-      try {
-        const db = await initDB();
-        const results = db.exec('SELECT name, message FROM messages ORDER BY id DESC');
-        messageList.innerHTML = '';
-        if (results[0]) {
-          results[0].values.forEach(([name, message]) => {
-            const div = document.createElement('div');
-            div.className = 'bg-[#222] p-4 rounded';
-            div.innerHTML = `<p class="text-sm"><strong>${escapeHTML(name)}</strong>: ${escapeHTML(message)}</p>`;
-            messageList.appendChild(div);
-          });
-        } else {
-          messageList.innerHTML = '<p class="text-sm text-[#00ffff]">No messages yet.</p>';
+      async function fetchDatabase() {
+        try {
+          const response = await fetch('data.db')
+          const arrayBuffer = await response.arrayBuffer()
+          return new SQL.Database(new Uint8Array(arrayBuffer))
+        } catch (err) {
+          console.error('Failed to load database:', err)
+          messageList.innerHTML = `<span style=color:red;>Error fetching messages.</span>`
+          return null
         }
-        db.close();
-      } catch (error) {
-        messageList.innerHTML = '<p class="text-sm text-[#ff5555]">Error loading messages.</p>';
+      }
+
+      function renderMessages(db) {
+        messageList.innerHTML = ''
+
+        try {
+          const stmt = db.prepare('SELECT name, message FROM messages ORDER BY id DESC')
+          while (stmt.step()) {
+            const row = stmt.getAsObject()
+            const div = document.createElement('div')
+            div.className = 'p-4 bg-[#111] rounded'
+            div.innerHTML = `<strong>${escapeHtml(row.name)}</strong>: ${escapeHtml(row.message)}`
+            messageList.appendChild(div)
+          }
+          stmt.free()
+        } catch (err) {
+          console.error('Failed to query database:', err)
+        }
+      }
+
+      function escapeHtml(text) {
+        const div = document.createElement('div')
+        div.textContent = text
+        return div.innerHTML
+      }
+
+      const db = await fetchDatabase()
+      if (db) {
+        renderMessages(db)
       }
     }
 
-    // Escape HTML to prevent XSS
-    function escapeHTML(str) {
-      return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
-    }
-
-    // Handle form submission
-    document.getElementById('guestbook-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const submitBtn = document.getElementById('submit-btn');
-      const status = document.getElementById('status');
-      submitBtn.disabled = true;
-      status.classList.remove('hidden');
-      status.textContent = 'Saving...';
-      status.className = 'text-sm text-[#00ffff]';
-
-      const payload = {
-        username: document.getElementById('username').value,
-        password: document.getElementById('password').value,
-        name: document.getElementById('name').value,
-        message: document.getElementById('message').value
-      };
-
-      try {
-        const response = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/workflows/${WORKFLOW_ID}/dispatches`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${GITHUB_TOKEN}`,
-            'Accept': 'application/vnd.github.v3+json',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            ref: 'main',
-            inputs: { payload: JSON.stringify(payload) }
-          })
-        });
-
-        if (!response.ok) throw new Error('Failed to trigger workflow');
-
-        // Poll for Pages redeploy (simplified; adjust interval/duration as needed)
-        await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10s
-        status.textContent = 'Message saved!';
-        status.className = 'text-sm text-[#00ff00]';
-        document.getElementById('guestbook-form').reset();
-        await loadMessages();
-      } catch (error) {
-        console.error('Error:', error);
-        status.textContent = 'Error saving message.';
-        status.className = 'text-sm text-[#ff5555]';
-      } finally {
-        submitBtn.disabled = false;
-        setTimeout(() => status.classList.add('hidden'), 3000);
-      }
-    });
-
-    // Load messages on page load
-    loadMessages();
+    document.addEventListener('DOMContentLoaded', initGuestbook)
   </script>
 </body>
 </html>
