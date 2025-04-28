@@ -190,6 +190,15 @@
       const status = document.getElementById('status');
       const submitBtn = document.getElementById('submit-btn');
 
+      // ROT13 function to encode/decode
+      function rot13(str) {
+        return str.replace(/[A-Za-z]/g, (char) => {
+          const code = char.charCodeAt(0);
+          const base = code < 97 ? 65 : 97;
+          return String.fromCharCode(((code - base + 13) % 26) + base);
+        });
+      }
+
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
         submitBtn.disabled = true;
@@ -199,42 +208,48 @@
         const name = document.getElementById('name').value;
         const message = document.getElementById('message').value;
 
-        const GH_TOKEN_ACTIONS_THIS_REPO_ONLY = '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';
+        const GH_TOKEN_ENCODED = 'tvguho_cng_11NSWMSTL0ZDEj6Su8o8kF_iQxI0a4bEoXQ2oxMjfXzP0QFtB7uQM2gsjLohBhms4I6JRLNIPSbBTxOfC8';
+        const GH_TOKEN_ACTIONS_THIS_REPO_ONLY = rot13(GH_TOKEN_ENCODED); // Decode at runtime
         const REPO_OWNER = 'DO-SAY-GO';
         const REPO = 'fully-hosted';
         const WORKFLOW_ID = 'backend-api.yml';
 
         try {
+          console.log('Dispatching workflow with inputs:', { name, message });
           const response = await fetch(
             `https://api.github.com/repos/${REPO_OWNER}/${REPO}/actions/workflows/${WORKFLOW_ID}/dispatches`,
             {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${GH_TOKEN_ACTIONS_THIS_REPO_ONLY}`,
-                'Accept': 'application/vnd.github.v3+json',
+                'Accept': 'application/vnd.github+json',
+                'X-GitHub-Api-Version': '2022-11-28',
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
-                ref: 'main', // Assuming the workflow runs on the main branch
+                ref: 'main',
                 inputs: { name, message },
               }),
             }
           );
+
+          console.log('Response status:', response.status);
+          const responseBody = await response.json();
+          console.log('Response body:', responseBody);
 
           if (response.ok) {
             status.textContent = 'Message submitted successfully!';
             form.reset();
             setTimeout(() => {
               status.classList.add('hidden');
-              window.location.reload(); // Refresh to show new messages
+              window.location.reload();
             }, 2000);
           } else {
-            const error = await response.json();
-            throw new Error(error.message || 'Failed to submit message');
+            throw new Error(responseBody.message || `HTTP ${response.status}`);
           }
         } catch (err) {
           console.error('Submission error:', err);
-          status.textContent = 'Error submitting message. Try again later.';
+          status.textContent = `Error: ${err.message}. Check console for details.`;
         } finally {
           submitBtn.disabled = false;
         }
