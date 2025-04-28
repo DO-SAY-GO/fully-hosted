@@ -5,7 +5,7 @@ rm -f data.db
 
 # 2. Create new database and table
 sqlite3 data.db "
-CREATE TABLE messages (
+CREATE TABLE guestbook (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   message TEXT NOT NULL,
@@ -15,7 +15,7 @@ CREATE TABLE messages (
 
 # 3. Insert some starter/test entries
 sqlite3 data.db "
-INSERT INTO messages (name, message) VALUES
+INSERT INTO guestbook (name, message) VALUES
 ('Cris', 'Testing this rad guestbook! 🚀'),
 ('Skylar', 'Love the retro vibes! 💾'),
 ('Nova', 'Broadcasting from the stars. 🌠'),

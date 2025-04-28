@@ -148,7 +148,7 @@
         messageList.innerHTML = ''
 
         try {
-          const stmt = db.prepare('SELECT name, message FROM messages ORDER BY id DESC')
+          const stmt = db.prepare('SELECT name, message FROM guestbook ORDER BY id DESC')
           while (stmt.step()) {
             const row = stmt.getAsObject()
             const div = document.createElement('div')
