@@ -93,11 +93,11 @@
     <!-- Form -->
     <form id="guestbook-form" class="space-y-4 mb-8">
       <div>
-        <input type="text" id="name" placeholder="Your Name" required
+        <input type="text" id="name" placeholder="Your Name" required maxlength=50
           class="bg-[#222] text-[#00ffff] p-2 rounded w-full text-sm" aria-label="Name">
       </div>
       <div>
-        <textarea id="message" placeholder="Your Message" required
+        <textarea id="message" placeholder="Your Message" required maxlength=140
           class="bg-[#222] text-[#00ffff] p-2 rounded w-full text-sm h-24" aria-label="Message"></textarea>
       </div>
       <button type="submit" id="submit-btn"
@@ -235,7 +235,7 @@
           }
 
           if (response.ok) {
-            status.textContent = 'Message submitted successfully!';
+            status.textContent = 'Message submitted successfully! Wait a few minutes for it to appear :)';
             form.reset();
             status.classList.add('hidden');
           } else {
