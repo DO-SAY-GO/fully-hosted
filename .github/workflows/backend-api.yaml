@@ -1,5 +1,3 @@
-# .github/workflows/backend.yml
-
 name: Update Guestbook Database Backend API
 
 on:
@@ -22,6 +20,30 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+
+    - name: Install sanitize-html
+      run: npm install sanitize-html
+
+    - name: Sanitize inputs
+      id: sanitize
+      run: |
+        node -e "
+          const sanitizeHtml = require('sanitize-html');
+          const name = process.env.NAME;
+          const message = process.env.MESSAGE;
+          const sanitizedName = sanitizeHtml(name, { allowedTags: [], allowedAttributes: {} });
+          const sanitizedMessage = sanitizeHtml(message, { allowedTags: [], allowedAttributes: {} });
+          console.log('SANITIZED_NAME=' + sanitizedName);
+          console.log('SANITIZED_MESSAGE=' + sanitizedMessage);
+        " >> $GITHUB_OUTPUT
+      env:
+        NAME: ${{ inputs.name }}
+        MESSAGE: ${{ inputs.message }}
+
     - name: Install sqlite3 CLI
       run: sudo apt-get update && sudo apt-get install -y sqlite3
 
@@ -29,18 +51,26 @@ jobs:
       run: |
         echo "Inserting into database..."
         sqlite3 data.db "CREATE TABLE IF NOT EXISTS guestbook (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, message TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);"
-        sqlite3 data.db "INSERT INTO guestbook (name, message) VALUES ('$NAME', '$MESSAGE');"
+        sqlite3 data.db "INSERT INTO guestbook (name, message) VALUES ('$SANITIZED_NAME', '$SANITIZED_MESSAGE');"
       env:
-        NAME: ${{ inputs.name }}
-        MESSAGE: ${{ inputs.message }}
+        SANITIZED_NAME: ${{ steps.sanitize.outputs.SANITIZED_NAME }}
+        SANITIZED_MESSAGE: ${{ steps.sanitize.outputs.SANITIZED_MESSAGE }}
+
+    - name: Set up SSH key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+        chmod 600 ~/.ssh/id_ed25519
+        ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+        git config --global core.sshCommand "ssh -i ~/.ssh/id_ed25519"
 
     - name: Commit and push database
       run: |
         git config user.name "GitHub Actions"
         git config user.email "actions@github.com"
         git add data.db
-        git commit -m "Update guestbook: add message from $NAME"
+        git commit -m "Update guestbook: add message from $SANITIZED_NAME"
+        git remote set-url origin git@github.com:DO-SAY-GO/fully-hosted.git
         git push
       env:
-        NAME: ${{ inputs.name }}
-
+        SANITIZED_NAME: ${{ steps.sanitize.outputs.SANITIZED_NAME }}
