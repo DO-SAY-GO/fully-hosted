@@ -235,9 +235,9 @@
           }
 
           if (response.ok) {
-            status.textContent = 'Message submitted successfully! Wait a few minutes for it to appear :)';
+            status.textContent = 'Message submitted successfully! Wait a minute or so for it to appear :)';
             form.reset();
-            status.classList.add('hidden');
+            setTimeout(() => status.classList.add('hidden'), 2222);
           } else {
             throw new Error(responseBody.message || `HTTP ${response.status}`);
           }
