@@ -134,7 +134,7 @@
 
       async function fetchDatabase() {
         try {
-          const response = await fetch('data.db')
+          const response = await fetch(`data.db?t=${Date.now()}`)
           const arrayBuffer = await response.arrayBuffer()
           return new SQL.Database(new Uint8Array(arrayBuffer))
         } catch (err) {
